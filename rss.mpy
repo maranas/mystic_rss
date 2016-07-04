@@ -1,0 +1,57 @@
+import feedparser
+import urllib
+import BeautifulSoup
+from mystic_bbs import *
+
+quit = 0
+
+feed_urls = [
+                "http://feeds.reuters.com/Reuters/worldNews?format=xml"
+            ]
+
+def feed_items_from_url(feed_url):
+    feed = feedparser.parse(feed_url)
+    feed_items = []
+    for feed_item in feed['items']:
+        item = {}
+        item['title'] = feed_item['title']
+        soup = BeautifulSoup.BeautifulSoup(feed_item['summary'])
+        item['summary'] = '\n'.join(soup.findAll(text=True))
+        item['link'] = feed_item['link']
+        feed_items.append(item)
+    return feed_items
+
+def item_contents_from_link_url(item_url):
+    contents = urllib.urlopen(item_url).read()
+    soup = BeautifulSoup.BeautifulSoup(contents)
+    texts = soup.body.findAll(text=True)
+    filtered = []
+    for line in texts:
+        stripped = line.strip()
+        if len(stripped):
+            filtered.append(stripped)
+    return '\n'.join(filtered)
+
+for feed_url in feed_urls:
+    write("Reading headlines from " + feed_url + ":|CR")
+    if quit == 1:
+        break
+    try:
+        items = feed_items_from_url(feed_url)
+        for feed_item in items:
+            try:
+                write(feed_item['title'] + "|CR") 
+                write("(C)ontinue to next story, (R)ead more, (Q)uit:")
+                char = onekey("CRQ", True)
+                if char == "R":
+                    # doesn't work, infinite loop?
+                    writeln(feed_item['summary'])
+                    continue
+                if char == "Q":
+                    quit = 1
+                    break
+            except:
+                writeln("EROOR: Can't display feed item: " + feed_item)
+    except:
+        writeln("ERROR: Can't read items from " + feed_url)
+writeln("Done! (C)ontinue to BBS")
