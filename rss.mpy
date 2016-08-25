@@ -14,7 +14,7 @@ def feed_items_from_url(feed_url):
     feed_items = []
     for feed_item in feed['items']:
         item = {}
-        item['title'] = feed_item['title']
+        item['title'] = feed_item['title'].strip()
         soup = BeautifulSoup.BeautifulSoup(feed_item['summary'])
         item['summary'] = '\n'.join(soup.findAll(text=True))
         item['link'] = feed_item['link']
@@ -33,25 +33,27 @@ def item_contents_from_link_url(item_url):
     return '\n'.join(filtered)
 
 for feed_url in feed_urls:
-    write("Reading headlines from " + feed_url + ":|CR")
+    writeln("|03Reading headlines from " + feed_url)
     if quit == 1:
         break
     try:
         items = feed_items_from_url(feed_url)
-        for feed_item in items:
+        for feed_item in items: 
             try:
-                write(feed_item['title'] + "|CR") 
-                write("(C)ontinue to next story, (R)ead more, (Q)uit:")
+                writeln("|06" + feed_item['title']) 
+                writeln("|07" + "(C)ontinue to next story, (R)ead more, (Q)uit:")
                 char = onekey("CRQ", True)
                 if char == "R":
-                    # doesn't work, infinite loop?
-                    writeln(feed_item['summary'])
-                    continue
+                    writeln("|09");
+                    print(feed_item['summary'])
+                    write("|CR")
+                    write("|02" + feed_item['link'] + "|CR")
+                    write("|07|CR");
                 if char == "Q":
                     quit = 1
                     break
             except:
-                writeln("EROOR: Can't display feed item: " + feed_item)
+                writeln("|04ERROR: Can't display feed item: " + feed_item)
     except:
-        writeln("ERROR: Can't read items from " + feed_url)
-writeln("Done! (C)ontinue to BBS")
+        writeln("|04ERROR: Can't read items from " + feed_url)
+writeln("|02Done!|CR")
